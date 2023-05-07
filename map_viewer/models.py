@@ -8,8 +8,8 @@ from django.db.models import JSONField
 from django.utils import timezone
 from sqlalchemy import create_engine
 
-from api.logger.middleware.RequestInfo import get_current_user_id
-from api.model_fields import DAHistoricalRecords, UserForeignKey
+# from api.logger.middleware.RequestInfo import get_current_user_id
+from api.model_fields import UserForeignKey
 from api.utils import CryptoUtils, DBQuery
 from map_viewer.enum import DataModel, VectorModel, RasterModel, AccessibilityType
 import geopandas as gpd
@@ -139,6 +139,10 @@ class LayerAccessibility(models.Model):
         return la
 
 
+def default_zoom_list():
+    return [0, 30]
+
+
 class LayerInfo(models.Model):
     uuid = models.CharField(max_length=40, unique=True)
     app_label = models.CharField(max_length=100, default='gis')
@@ -153,7 +157,7 @@ class LayerInfo(models.Model):
     raster_type = models.CharField(max_length=20, null=True, blank=True, choices=RasterModel.choices())
     geom_type = ArrayField(base_field=models.CharField(max_length=50), null=True, blank=True)
     layer_styling = JSONField(null=True, blank=True)
-    zoom_range = ArrayField(base_field=models.FloatField(), default=[0, 30])
+    zoom_range = ArrayField(base_field=models.FloatField(), default=default_zoom_list)
     category = models.ForeignKey(LayerCategory, on_delete=models.DO_NOTHING, null=True, blank=True)
     quality_level = models.ForeignKey(LayerQualityLevel, on_delete=models.DO_NOTHING, null=True, blank=True)
     dataset_info = JSONField(null=True, blank=True)
@@ -167,10 +171,10 @@ class LayerInfo(models.Model):
     def __str__(self):
         return self.layer_name
 
-    def save(self, *args, **kwargs):
-        if not self.uploaded_by:
-            self.uploaded_by = get_current_user_id()
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if not self.uploaded_by:
+    #         self.uploaded_by = get_current_user_id()
+    #     super().save(*args, **kwargs)
 
     def to_df(self, cols=[]) -> pd.DataFrame:
         if self.data_model == DataModel.V.name:

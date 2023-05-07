@@ -5,7 +5,7 @@ from django.urls import path
 
 from api.utils import ModelUtils
 from .models import *
-from .views import layer_download
+
 
 
 class LayerCategoryAdmin(admin.ModelAdmin):
@@ -69,10 +69,6 @@ class LayerInfoAdmin(admin.ModelAdmin):
     # def set_3857_geom_field(self, request, queryset):
     #     for info in queryset:
     #         LayerUtils.add_3857_geometry_column(info)
-    @staticmethod
-    def download_data(request, queryset):
-        for info in queryset:
-            return layer_download(request, info.uuid)
 
 
 @admin.register(MapInfo)

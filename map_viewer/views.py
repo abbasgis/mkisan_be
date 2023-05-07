@@ -7,9 +7,11 @@ from django.http import HttpResponse
 from rest_framework import decorators, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rio_tiler.colormap import cmap
+
 from api.utils import PDUtils, CommonUtils
-from raster.cog_raster import COGRaster
-from raster.rio_raster import RioRaster
+from map_viewer.raster_utils.cog_raster import COGRaster
+from map_viewer.raster_utils.rio_raster import RioRaster
 from map_viewer.binary_renderer import BinaryRenderer
 from map_viewer.models import LayerInfo
 from rasterio.mask import mask
@@ -40,7 +42,8 @@ class TileView(APIView):
                 style = info.layer_styling
                 file_path = os.path.join(COG_DIR, params['file_path'])
                 cog_raster = COGRaster.open_from_local(file_path)
-                cm = COGRaster.create_color_map(info.layer_styling)
+                # cm = COGRaster.create_custom_color_map(info.layer_styling)
+                cm = cmap.get("gist_rainbow")
                 data = cog_raster.read_tile_as_png(x, y, z, color_map=cm)
                 return HttpResponse(data, content_type="image/png")
 
@@ -181,6 +184,7 @@ class FloatUrlParameterConverter:
         return str(value)
 
 
+@decorators.api_view(["GET"])
 def create_cog_raster(request, raster_name):
     try:
         ori_raster_path = os.path.join(COG_DIR, f'{raster_name}.tif')
@@ -192,3 +196,20 @@ def create_cog_raster(request, raster_name):
         return HttpResponse("COG Created....")
     except Exception as e:
         return HttpResponse("Failed to create")
+
+
+@decorators.api_view(["POST"])
+def get_raster_value_from_geo_json(request):
+    uuid = request.GET.get('uuid')
+    data = request.data
+    geojson = json.loads(data)
+    info = LayerInfo.objects.filter(uuid=uuid).first()
+    if info.data_model == 'R':
+        if info.layer_access.accessibility_type == 'File':
+            params = info.layer_access.params
+            file_path = os.path.join(COG_DIR, params['file_path'])
+            cog_raster = COGRaster.open_from_local(file_path)
+            data = cog_raster.get_raster_value_from_geojson(geojson)
+            # print(data)
+            return Response({"payload": data}, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_204_NO_CONTENT)
