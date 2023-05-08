@@ -108,9 +108,9 @@ DATABASES = {
         'NAME': 'mera_kisan',
         'USER': 'postgres',  # Not used with sqlite3.
         # 'PASSWORD': '123',  # Not used with sqlite3.
-        'HOST': 'localhost',  # Set to empty string for localhost. Not used with sqlite3.
+        # 'HOST': 'localhost',  # Set to empty string for localhost. Not used with sqlite3.
         'PASSWORD': 'pg123@meraKisan',  # Not used with sqlite3.
-        # 'HOST': '116.58.43.35',  # Set to empty string for localhost. Not used with sqlite3.
+        'HOST': '65.1.240.23',  # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '5433'
     }
 }
